@@ -3,36 +3,70 @@
 package main
 
 import (
-	. "fmt"
+	"fmt"
 	"runtime"
-	"time"
 )
 
 var i = 0
-
-func incrementing() {
-	for j := 0; j < 100000000; j++ {
-		i++
-	}
-	//TODO: increment i 1000000 times
-}
-
-func decrementing() {
-	for j := 0; j < 100000000; j++ {
-		i--
-	}
-	//TODO: decrement i 1000000 times
-}
 
 func main() {
 	// Setter at gorutinen kan bruke to operativsystemer samtidig.
 	runtime.GOMAXPROCS(2)
 
-	go incrementing()
-	go decrementing()
+	decrementChan := make(chan int)
+	incrementChan := make(chan int)
 
-	// We have no direct way to wait for the completion of a goroutine (without additional synchronization of some sort)
-	// We will do it properly with channels soon. For now: Sleep.
-	time.Sleep(500 * time.Millisecond)
-	Println("The magic number is:", i)
+	doneChan := make(chan bool, 2)
+
+	fmt.Println("halloooo")
+
+	go incrementing(incrementChan, doneChan)
+	go decrementing(decrementChan, doneChan)
+
+	fmt.Println("hei hei")
+
+	choice(incrementChan, decrementChan, doneChan)
+
+	//time.Sleep(500 * time.Millisecond)
+	fmt.Println("The magic number is:", i)
+}
+
+func incrementing(incrementChan chan int, doneChan chan bool) {
+	for j := 0; j < 100000000; j++ {
+		incrementChan <- 1
+	}
+	close(incrementChan)
+	doneChan <- true
+	fmt.Println("Thread 1 ferdig")
+}
+
+func decrementing(decrementChan chan int, doneChan chan bool) {
+	for j := 0; j < 100000000; j++ {
+		decrementChan <- 1
+	}
+	close(decrementChan)
+	doneChan <- true
+	fmt.Println("Thread 2 ferdig")
+}
+
+func choice(incrementChan chan int, decrementChan chan int, doneChan chan bool) {
+	doneCount := 0
+
+	for {
+		select {
+		case val, ok := <-incrementChan:
+			if ok {
+				i += val
+			}
+		case val, ok := <-decrementChan:
+			if ok {
+				i -= val
+			}
+		case <-doneChan:
+			doneCount++
+			if doneCount == 2 {
+				return
+			}
+		}
+	}
 }
