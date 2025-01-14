@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+// 3: SHARING A VARIABLE
+
 var i int
 var mu sync.Mutex
 var wg sync.WaitGroup
@@ -38,3 +40,5 @@ func main() {
 
 	fmt.Println("Resultat:", i)
 }
+
+// 4: SHARING A VARIABLE BUT PROPERLY
