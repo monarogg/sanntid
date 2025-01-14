@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/monarogg/Documents/SANNTID/Exercise 1/foo'
+relocations:     []
+...
